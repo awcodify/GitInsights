@@ -138,7 +138,8 @@ func generateMarkdown(stats map[string]int, totalSize int) string {
 	var lines []string
 	lines = append(lines, "<!--START_SECTION:GitInsights-->")
 	lines = append(lines, "### Git Insight")
-	lines = append(lines, "\nLanguage Statistics:\n")
+	lines = append(lines, "\nLanguage Statistics:")
+	lines = append(lines, "```")
 
 	// Sort languages by percentage
 	sortedLanguages := sortLanguagesByPercentage(stats, totalSize)
@@ -150,9 +151,10 @@ func generateMarkdown(stats map[string]int, totalSize int) string {
 
 	for _, lang := range combinedLanguages {
 		percentage := float64(stats[lang]) / float64(totalSize) * 100
-		lines = append(lines, fmt.Sprintf("%-*s %s%6.2f%%", maxLangLength, lang, generateProgressBar(percentage), percentage))
+		lines = append(lines, fmt.Sprintf("%-*s [%-30s] %5.2f%%", maxLangLength, lang, generateProgressBar(percentage), percentage))
 	}
 
+	lines = append(lines, "```")
 	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
