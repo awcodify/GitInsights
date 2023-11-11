@@ -138,7 +138,7 @@ func generateMarkdown(stats map[string]int, totalSize int) string {
 	var lines []string
 	lines = append(lines, "<!--START_SECTION:GitInsights-->")
 	lines = append(lines, "### Git Insight")
-	lines = append(lines, "\nLanguage Statistics:")
+	lines = append(lines, "\nLanguage Statistics:\n")
 
 	// Sort languages by percentage
 	sortedLanguages := sortLanguagesByPercentage(stats, totalSize)
