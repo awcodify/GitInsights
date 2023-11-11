@@ -1,4 +1,4 @@
-module GitInsight
+module GitInsights
 
 go 1.21.3
 
