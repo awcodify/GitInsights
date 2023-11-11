@@ -136,7 +136,7 @@ func generateProgressBar(percentage float64) string {
 
 func generateMarkdown(stats map[string]int, totalSize int) string {
 	var lines []string
-	lines = append(lines, "<!--START_SECTION:GitInsight-->")
+	lines = append(lines, "<!--START_SECTION:GitInsights-->")
 	lines = append(lines, "### Git Insight")
 	lines = append(lines, "\nLanguage Statistics:")
 
@@ -153,7 +153,7 @@ func generateMarkdown(stats map[string]int, totalSize int) string {
 		lines = append(lines, fmt.Sprintf("%-*s %s%6.2f%%", maxLangLength, lang, generateProgressBar(percentage), percentage))
 	}
 
-	lines = append(lines, "<!--END_SECTION:GitInsight-->")
+	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
 }
@@ -182,16 +182,16 @@ func updateReadme(content string) error {
 		return fmt.Errorf("failed to read README.md: %w", err)
 	}
 
-	// Find the GitInsight section in the README.md content
-	startIdx := bytes.Index(data, []byte("<!--START_SECTION:GitInsight-->"))
-	endIdx := bytes.Index(data, []byte("<!--END_SECTION:GitInsight-->"))
+	// Find the GitInsights section in the README.md content
+	startIdx := bytes.Index(data, []byte("<!--START_SECTION:GitInsights-->"))
+	endIdx := bytes.Index(data, []byte("<!--END_SECTION:GitInsights-->"))
 	if startIdx == -1 || endIdx == -1 {
-		return fmt.Errorf("GitInsight section not found in README.md")
+		return fmt.Errorf("GitInsights section not found in README.md")
 	}
 
-	// Replace the GitInsight section with the updated content
+	// Replace the GitInsights section with the updated content
 	updatedContent := append(data[:startIdx], []byte(content)...)
-	updatedContent = append(updatedContent, data[endIdx+len("<!--END_SECTION:GitInsight-->"):]...)
+	updatedContent = append(updatedContent, data[endIdx+len("<!--END_SECTION:GitInsights-->"):]...)
 
 	// Truncate the file and write the updated content
 	if err := file.Truncate(0); err != nil {
