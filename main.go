@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
+	"bytes"
 
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/oauth2"
@@ -26,8 +29,18 @@ func main() {
 	)))
 
 	// Step 3: Summarize GitHub profile
-	if err := summarizeGitHubProfile(ctx, client); err != nil {
+	stats, totalSize, err := summarizeGitHubProfile(ctx, client)
+	if err != nil {
 		log.Fatal("Error summarizing GitHub profile:", err)
+	}
+
+	// Step 4: Generate markdown content
+	markdownContent := generateMarkdown(stats, totalSize)
+
+	// Step 5: Update README.md
+	err = updateReadme(markdownContent)
+	if err != nil {
+		log.Fatal("Error updating README.md:", err)
 	}
 }
 
@@ -44,11 +57,11 @@ func getGitHubToken() (string, error) {
 	return token, nil
 }
 
-func summarizeGitHubProfile(ctx context.Context, client *github.Client) error {
+func summarizeGitHubProfile(ctx context.Context, client *github.Client) (map[string]int, int, error) {
 	// Get the authenticated user
 	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		return fmt.Errorf("failed to get user details: %w", err)
+		return nil, 0, fmt.Errorf("failed to get user details: %w", err)
 	}
 
 	fmt.Printf("GitHub Profile Summary for %s (%s)\n", *user.Login, *user.Name)
@@ -56,7 +69,7 @@ func summarizeGitHubProfile(ctx context.Context, client *github.Client) error {
 	// Get the list of repositories for the authenticated user
 	repos, _, err := client.Repositories.List(ctx, *user.Login, nil)
 	if err != nil {
-		return fmt.Errorf("failed to get user repositories: %w", err)
+		return nil, 0, fmt.Errorf("failed to get user repositories: %w", err)
 	}
 
 	// Initialize a map to store language statistics
@@ -66,7 +79,7 @@ func summarizeGitHubProfile(ctx context.Context, client *github.Client) error {
 	for _, repo := range repos {
 		languages, _, err := client.Repositories.ListLanguages(ctx, *user.Login, *repo.Name)
 		if err != nil {
-			return fmt.Errorf("failed to get languages for repository %s: %w", *repo.Name, err)
+			return nil, 0, fmt.Errorf("failed to get languages for repository %s: %w", *repo.Name, err)
 		}
 
 		// Increment language count in the map
@@ -81,20 +94,7 @@ func summarizeGitHubProfile(ctx context.Context, client *github.Client) error {
 		totalSize += size
 	}
 
-	// Sort languages by percentage
-	sortedLanguages := sortLanguagesByPercentage(languageStats, totalSize)
-
-	// Combine languages that make up less than 5% into "Other"
-	combinedLanguages := combineLanguages(sortedLanguages, languageStats, totalSize)
-
-	// Display language statistics with percentage numbers and bars
-	fmt.Println("\nLanguage Statistics:")
-	for _, lang := range combinedLanguages {
-		percentage := float64(languageStats[lang]) / float64(totalSize) * 100
-		fmt.Printf("%-25s%10.2f%%   %s\n", lang, percentage, generateProgressBar(percentage))
-	}
-
-	return nil
+	return languageStats, totalSize, nil
 }
 
 func sortLanguagesByPercentage(languageStats map[string]int, totalSize int) []string {
@@ -134,3 +134,72 @@ func generateProgressBar(percentage float64) string {
 	return fmt.Sprintf("%s%s", strings.Repeat("█", numFilled), strings.Repeat("░", barWidth-numFilled))
 }
 
+func generateMarkdown(stats map[string]int, totalSize int) string {
+	var lines []string
+	lines = append(lines, "<!--START_SECTION:GitInsight-->")
+	lines = append(lines, "### Git Insight")
+	lines = append(lines, "\nLanguage Statistics:")
+
+	// Sort languages by percentage
+	sortedLanguages := sortLanguagesByPercentage(stats, totalSize)
+
+	// Combine languages that make up less than 5% into "Other"
+	combinedLanguages := combineLanguages(sortedLanguages, stats, totalSize)
+
+	maxLangLength := maxLanguageLength(combinedLanguages)
+
+	for _, lang := range combinedLanguages {
+		percentage := float64(stats[lang]) / float64(totalSize) * 100
+		lines = append(lines, fmt.Sprintf("%-*s %s%6.2f%%", maxLangLength, lang, generateProgressBar(percentage), percentage))
+	}
+
+	lines = append(lines, "<!--END_SECTION:GitInsight-->")
+
+	return strings.Join(lines, "\n")
+}
+
+func maxLanguageLength(languages []string) int {
+	maxLength := 0
+	for _, lang := range languages {
+		if len(lang) > maxLength {
+			maxLength = len(lang)
+		}
+	}
+	return maxLength
+}
+
+func updateReadme(content string) error {
+	filePath := "README.md"
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open README.md: %w", err)
+	}
+	defer file.Close()
+
+	// Read the existing content
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("failed to read README.md: %w", err)
+	}
+
+	// Find the GitInsight section in the README.md content
+	startIdx := bytes.Index(data, []byte("<!--START_SECTION:GitInsight-->"))
+	endIdx := bytes.Index(data, []byte("<!--END_SECTION:GitInsight-->"))
+	if startIdx == -1 || endIdx == -1 {
+		return fmt.Errorf("GitInsight section not found in README.md")
+	}
+
+	// Replace the GitInsight section with the updated content
+	updatedContent := append(data[:startIdx], []byte(content)...)
+	updatedContent = append(updatedContent, data[endIdx+len("<!--END_SECTION:GitInsight-->"):]...)
+
+	// Truncate the file and write the updated content
+	if err := file.Truncate(0); err != nil {
+		return fmt.Errorf("failed to truncate README.md: %w", err)
+	}
+	if _, err := file.WriteAt(updatedContent, 0); err != nil {
+		return fmt.Errorf("failed to write to README.md: %w", err)
+	}
+
+	return nil
+}
