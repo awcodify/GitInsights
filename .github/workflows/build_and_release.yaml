@@ -1,12 +1,9 @@
 name: Build and Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*.*.*"
-    branches:
-      - build-and-release
 
 jobs:
   build_and_release:
