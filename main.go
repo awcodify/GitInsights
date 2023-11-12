@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/oauth2"
@@ -91,15 +92,36 @@ func summarizeGitHubProfile(ctx context.Context, client GitHubClient) (map[strin
 	// Initialize a map to store language statistics
 	languageStats := make(map[string]int)
 
-	// Iterate through each repository and count the languages
-	for _, repo := range repos {
-		languages, _, err := client.ListLanguages(ctx, *user.Login, *repo.Name)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to get languages for repository %s: %w", *repo.Name, err)
-		}
+	// Create a wait group to wait for all goroutines to finish
+	var wg sync.WaitGroup
 
+	// Create a channel to receive language statistics from goroutines
+	statsCh := make(chan map[string]int)
+
+	// Iterate through each repository and fetch languages concurrently
+	for _, repo := range repos {
+		wg.Add(1)
+		go func(repo *github.Repository) {
+			defer wg.Done()
+			languages, _, err := client.ListLanguages(ctx, *user.Login, *repo.Name)
+			if err != nil {
+				log.Printf("Error fetching languages for repository %s: %v\n", *repo.Name, err)
+				return
+			}
+			statsCh <- languages
+		}(repo)
+	}
+
+	// Close the channel when all goroutines are done
+	go func() {
+		wg.Wait()
+		close(statsCh)
+	}()
+
+	// Collect language statistics from the channel
+	for stats := range statsCh {
 		// Increment language count in the map
-		for lang, bytes := range languages {
+		for lang, bytes := range stats {
 			languageStats[lang] += bytes
 		}
 	}
