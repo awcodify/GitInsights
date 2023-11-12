@@ -34,7 +34,7 @@ jobs:
         git clone https://github.com/awcodify/gitinsights.git $HOME/gitinsights
         go run $HOME/gitinsights/main.go
       env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 ```
 Ensure you have added the GH_TOKEN secret with the necessary permissions.
 
