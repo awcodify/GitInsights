@@ -59,6 +59,7 @@ export GITHUB_TOKEN=$(gh auth token)
 ## Metrics
 
 * Language Usage: Provides a breakdown of the languages used across your repositories.
+* Most productive day and time
 * (Under development, and need your contribution!)
 
 ## Sample Result
