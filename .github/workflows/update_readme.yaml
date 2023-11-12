@@ -23,5 +23,5 @@ jobs:
         
       - name: Run your Go application
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: go run main.go
