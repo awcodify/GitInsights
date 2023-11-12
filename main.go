@@ -20,6 +20,7 @@ type GitHubClient interface {
 	GetUser(ctx context.Context, user string) (*github.User, *github.Response, error)
 	ListRepositories(ctx context.Context, user string, opts *github.RepositoryListOptions) ([]*github.Repository, *github.Response, error)
 	ListLanguages(ctx context.Context, user, repo string) (map[string]int, *github.Response, error)
+	ListAllCommits(ctx context.Context, user string, opts *github.CommitsListOptions) ([]*github.RepositoryCommit, *github.Response, error)
 }
 
 // GitHubAPI implements GitHubClient interface using go-github library
@@ -40,6 +41,27 @@ func (g *GitHubAPI) ListRepositories(ctx context.Context, user string, opts *git
 // ListLanguages retrieves the languages used in a repository from GitHub
 func (g *GitHubAPI) ListLanguages(ctx context.Context, user, repo string) (map[string]int, *github.Response, error) {
 	return g.Client.Repositories.ListLanguages(ctx, user, repo)
+}
+
+// Implement the new method ListAllCommits in the GitHubAPI struct
+func (g *GitHubAPI) ListAllCommits(ctx context.Context, user string, opts *github.CommitsListOptions) ([]*github.RepositoryCommit, *github.Response, error) {
+	var allCommits []*github.RepositoryCommit
+
+	repos, _, err := g.Client.Repositories.List(ctx, user, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, repo := range repos {
+		commits, _, err := g.Client.Repositories.ListCommits(ctx, user, *repo.Name, opts)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		allCommits = append(allCommits, commits...)
+	}
+
+	return allCommits, nil, nil
 }
 
 func main() {
@@ -64,8 +86,20 @@ func main() {
 		log.Fatal("Error summarizing GitHub profile:", err)
 	}
 
+	// Calculate most productive day
+	mostProductiveDay, err := calculateMostProductiveDay(ctx, gitHubAPI)
+	if err != nil {
+		log.Printf("Error calculating most productive day: %v\n", err)
+	}
+
+	// Calculate most productive time
+	mostProductiveHour, err := calculateMostProductiveTime(ctx, gitHubAPI)
+	if err != nil {
+		log.Printf("Error calculating most productive time: %v\n", err)
+	}
+
 	// Step 5: Generate markdown content
-	markdownContent := generateMarkdown(stats, totalSize)
+	markdownContent := generateMarkdown(stats, totalSize, mostProductiveDay, mostProductiveHour)
 
 	// Step 6: Update README.md
 	err = updateReadme(markdownContent)
@@ -172,7 +206,7 @@ func generateProgressBar(percentage float64) string {
 	return fmt.Sprintf("%s%s", strings.Repeat("█", numFilled), strings.Repeat("░", barWidth-numFilled))
 }
 
-func generateMarkdown(stats map[string]int, totalSize int) string {
+func generateMarkdown(stats map[string]int, totalSize int, mostProductiveDay string, mostProductiveHour string) string {
 	var lines []string
 	lines = append(lines, "<!--START_SECTION:GitInsights-->")
 	lines = append(lines, "### Git Insight")
@@ -193,6 +227,8 @@ func generateMarkdown(stats map[string]int, totalSize int) string {
 	}
 
 	lines = append(lines, "```")
+	lines = append(lines, "\n📅 Most Productive Day: "+mostProductiveDay)
+	lines = append(lines, "\n⌚️ Most Productive Hour: "+mostProductiveHour)
 	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
@@ -242,4 +278,113 @@ func updateReadme(content string) error {
 	}
 
 	return nil
+}
+
+func calculateMostProductiveDay(ctx context.Context, client GitHubClient) (string, error) {
+	user, _, err := client.GetUser(ctx, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to get user details: %w", err)
+	}
+
+	commits, _, err := client.ListAllCommits(ctx, *user.Name, nil)
+	if err != nil {
+		return "", err
+	}
+
+	commitsPerDay := make(map[string]int)
+	var wg sync.WaitGroup
+	ch := make(chan string)
+
+	// Process commits concurrently
+	for _, commit := range commits {
+		wg.Add(1)
+		go func(c *github.RepositoryCommit) {
+			defer wg.Done()
+			day := c.Commit.Author.Date.Weekday().String()
+			ch <- day
+		}(commit)
+	}
+
+	// Close the channel when all goroutines are done
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	// Collect results from goroutines
+	for day := range ch {
+		commitsPerDay[day]++
+	}
+
+	mostProductiveDay := findMaxKey(commitsPerDay)
+	return mostProductiveDay, nil
+}
+
+func findMaxKey(data map[string]int) string {
+	maxKey := ""
+	maxVal := 0
+	for key, val := range data {
+		if val > maxVal {
+			maxKey = key
+			maxVal = val
+		}
+	}
+	return maxKey
+}
+
+func calculateMostProductiveTime(ctx context.Context, client GitHubClient) (string, error) {
+	user, _, err := client.GetUser(ctx, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to get user details: %w", err)
+	}
+
+	commits, _, err := client.ListAllCommits(ctx, *user.Name, nil)
+	if err != nil {
+		return "", err
+	}
+
+	commitsPerHour := make(map[int]int)
+	var wg sync.WaitGroup
+	ch := make(chan int)
+
+	// Process commits concurrently
+	for _, commit := range commits {
+		wg.Add(1)
+		go func(c *github.RepositoryCommit) {
+			defer wg.Done()
+			hour := c.Commit.Author.Date.Hour()
+			ch <- hour
+		}(commit)
+	}
+
+	// Close the channel after all goroutines are done
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	// Collect results from goroutines
+	for hour := range ch {
+		commitsPerHour[hour]++
+	}
+
+	mostProductiveHour := findMaxKeyInt(commitsPerHour)
+
+	// Determine the time range based on the most productive hour
+	startHour := mostProductiveHour % 24
+	endHour := (startHour + 1) % 24
+
+	return fmt.Sprintf("%02d:00 - %02d:00", startHour, endHour), nil
+}
+
+func findMaxKeyInt(data map[int]int) int {
+	maxKey := 0
+	maxVal := 0
+	for key, val := range data {
+		if val > maxVal {
+			maxKey = key
+			maxVal = val
+		}
+	}
+	return maxKey
 }
