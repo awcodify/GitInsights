@@ -1,6 +1,6 @@
 module GitInsights
 
-go 1.21.3
+go 1.21
 
 require (
 	github.com/google/go-github/v38 v38.1.0
