@@ -4,6 +4,13 @@ Git Insights is a tool that provides a summary of your GitHub profile, including
 
 ## Usage
 
+Add this snippet into your README.md
+
+```
+<!--START_SECTION:GitInsights-->
+<!--END_SECTION:GitInsights-->
+```
+
 ### GitHub Action
 
 Automatically update your README.md with Git Insights using the following GitHub Action workflow:
