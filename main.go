@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,11 +9,38 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"bytes"
+	"sync"
 
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/oauth2"
 )
+
+// GitHubClient is an interface for GitHub-related functionality
+type GitHubClient interface {
+	GetUser(ctx context.Context, user string) (*github.User, *github.Response, error)
+	ListRepositories(ctx context.Context, user string, opts *github.RepositoryListOptions) ([]*github.Repository, *github.Response, error)
+	ListLanguages(ctx context.Context, user, repo string) (map[string]int, *github.Response, error)
+}
+
+// GitHubAPI implements GitHubClient interface using go-github library
+type GitHubAPI struct {
+	Client *github.Client
+}
+
+// GetUser retrieves user details from GitHub
+func (g *GitHubAPI) GetUser(ctx context.Context, user string) (*github.User, *github.Response, error) {
+	return g.Client.Users.Get(ctx, user)
+}
+
+// ListRepositories retrieves a list of repositories for a user from GitHub
+func (g *GitHubAPI) ListRepositories(ctx context.Context, user string, opts *github.RepositoryListOptions) ([]*github.Repository, *github.Response, error) {
+	return g.Client.Repositories.List(ctx, user, opts)
+}
+
+// ListLanguages retrieves the languages used in a repository from GitHub
+func (g *GitHubAPI) ListLanguages(ctx context.Context, user, repo string) (map[string]int, *github.Response, error) {
+	return g.Client.Repositories.ListLanguages(ctx, user, repo)
+}
 
 func main() {
 	// Step 1: Get GitHub token
@@ -27,25 +55,28 @@ func main() {
 		&oauth2.Token{AccessToken: token},
 	)))
 
-	// Step 3: Summarize GitHub profile
-	stats, totalSize, err := summarizeGitHubProfile(ctx, client)
+	// Step 3: Create an instance of GitHubAPI
+	gitHubAPI := &GitHubAPI{Client: client}
+
+	// Step 4: Summarize GitHub profile
+	stats, totalSize, err := summarizeGitHubProfile(ctx, gitHubAPI)
 	if err != nil {
 		log.Fatal("Error summarizing GitHub profile:", err)
 	}
 
-	// Step 4: Generate markdown content
+	// Step 5: Generate markdown content
 	markdownContent := generateMarkdown(stats, totalSize)
 
-	// Step 5: Update README.md
+	// Step 6: Update README.md
 	err = updateReadme(markdownContent)
 	if err != nil {
 		log.Fatal("Error updating README.md:", err)
 	}
 }
 
-func summarizeGitHubProfile(ctx context.Context, client *github.Client) (map[string]int, int, error) {
+func summarizeGitHubProfile(ctx context.Context, client GitHubClient) (map[string]int, int, error) {
 	// Get the authenticated user
-	user, _, err := client.Users.Get(ctx, "")
+	user, _, err := client.GetUser(ctx, "")
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get user details: %w", err)
 	}
@@ -53,7 +84,7 @@ func summarizeGitHubProfile(ctx context.Context, client *github.Client) (map[str
 	fmt.Printf("GitHub Profile Summary for %s (%s)\n", *user.Login, *user.Name)
 
 	// Get the list of repositories for the authenticated user
-	repos, _, err := client.Repositories.List(ctx, *user.Login, nil)
+	repos, _, err := client.ListRepositories(ctx, *user.Login, nil)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get user repositories: %w", err)
 	}
@@ -61,15 +92,36 @@ func summarizeGitHubProfile(ctx context.Context, client *github.Client) (map[str
 	// Initialize a map to store language statistics
 	languageStats := make(map[string]int)
 
-	// Iterate through each repository and count the languages
-	for _, repo := range repos {
-		languages, _, err := client.Repositories.ListLanguages(ctx, *user.Login, *repo.Name)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to get languages for repository %s: %w", *repo.Name, err)
-		}
+	// Create a wait group to wait for all goroutines to finish
+	var wg sync.WaitGroup
 
+	// Create a channel to receive language statistics from goroutines
+	statsCh := make(chan map[string]int)
+
+	// Iterate through each repository and fetch languages concurrently
+	for _, repo := range repos {
+		wg.Add(1)
+		go func(repo *github.Repository) {
+			defer wg.Done()
+			languages, _, err := client.ListLanguages(ctx, *user.Login, *repo.Name)
+			if err != nil {
+				log.Printf("Error fetching languages for repository %s: %v\n", *repo.Name, err)
+				return
+			}
+			statsCh <- languages
+		}(repo)
+	}
+
+	// Close the channel when all goroutines are done
+	go func() {
+		wg.Wait()
+		close(statsCh)
+	}()
+
+	// Collect language statistics from the channel
+	for stats := range statsCh {
 		// Increment language count in the map
-		for lang, bytes := range languages {
+		for lang, bytes := range stats {
 			languageStats[lang] += bytes
 		}
 	}
