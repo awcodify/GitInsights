@@ -23,18 +23,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-
-    - name: Set up Git Insight
+      
+    - name: Download and run GitInsight
       run: |
-        git clone https://github.com/awcodify/gitinsights.git $HOME/gitinsights
-        go run $HOME/gitinsights/main.go
+        wget https://github.com/awcodify/GitInsights/releases/download/v0.1.0/GitInsights -O GitInsights
+        chmod +x GitInsights
+        ./GitInsights
+
+        # Commit and push changes
+        git config --local user.email "awcodify@gmail.com"
+        git config --local user.name "awcodify"
+        git add .
+        git commit -m "Update README.md from GitInsights"
+        git push
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
 ```
 Ensure you have added the GH_TOKEN secret with the necessary permissions.
 
