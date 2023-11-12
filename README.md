@@ -46,7 +46,7 @@ go run main.go
 ```
 Make sure you already logged in to Github with:
 ```bash
-gh auth login
+export GITHUB_TOKEN=$(gh auth token)
 ```
 ## Metrics
 
