@@ -28,15 +28,6 @@ jobs:
 
     - name: Set up Go
       uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
-
-    - name: Install gh CLI
-      run: |
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        sudo apt-add-repository -y https://cli.github.com/packages
-        sudo apt-get update
-        sudo apt-get install gh
 
     - name: Set up Git Insight
       run: |

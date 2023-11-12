@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"sort"
 	"strings"
 	"bytes"
@@ -16,10 +15,10 @@ import (
 )
 
 func main() {
-	// Step 1: Get GitHub token from gh auth token
-	token, err := getGitHubToken()
-	if err != nil {
-		log.Fatal("Error getting GitHub token:", err)
+	// Step 1: Get GitHub token
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		log.Fatal("GITHUB_TOKEN is not set")
 	}
 
 	// Step 2: Initialize GitHub client
@@ -42,19 +41,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error updating README.md:", err)
 	}
-}
-
-func getGitHubToken() (string, error) {
-	// Run "gh auth token" command to get the GitHub token
-	cmd := exec.Command("gh", "auth", "token")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to execute 'gh auth token': %w", err)
-	}
-
-	// Trim any leading/trailing whitespaces from the token
-	token := strings.TrimSpace(string(output))
-	return token, nil
 }
 
 func summarizeGitHubProfile(ctx context.Context, client *github.Client) (map[string]int, int, error) {
