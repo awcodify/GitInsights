@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/v38/github"
 	"golang.org/x/oauth2"
@@ -229,6 +230,7 @@ func generateMarkdown(stats map[string]int, totalSize int, mostProductiveDay str
 	lines = append(lines, "```")
 	lines = append(lines, "\n📅 Most Productive Day: "+mostProductiveDay)
 	lines = append(lines, "\n⌚️ Most Productive Hour: "+mostProductiveHour)
+	lines = append(lines, "\n _Last update: "+fmt.Sprint(time.Now().Format("2006-01-02 15:04:05")+"_"))
 	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
