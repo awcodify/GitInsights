@@ -11,13 +11,15 @@ import (
 
 // ProfileStatsUseCase orchestrates business logic for profile statistics
 type ProfileStatsUseCase struct {
-	githubRepo domain.GitHubRepository
+	githubRepo          domain.GitHubRepository
+	maxVisibleLanguages int
 }
 
 // NewProfileStatsUseCase creates a new instance
-func NewProfileStatsUseCase(githubRepo domain.GitHubRepository) *ProfileStatsUseCase {
+func NewProfileStatsUseCase(githubRepo domain.GitHubRepository, maxVisibleLanguages int) *ProfileStatsUseCase {
 	return &ProfileStatsUseCase{
-		githubRepo: githubRepo,
+		githubRepo:          githubRepo,
+		maxVisibleLanguages: maxVisibleLanguages,
 	}
 }
 
@@ -63,9 +65,9 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 	}, nil
 }
 
-// processLanguages sorts and combines languages, filtering out small percentages
+// processLanguages sorts and combines languages, showing top N languages
 func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, totalBytes int) []domain.LanguageStats {
-	const minPercentage = 5.0
+	maxVisibleLanguages := uc.maxVisibleLanguages
 
 	// Sort languages by bytes
 	type langPair struct {
@@ -82,13 +84,27 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 		return pairs[i].bytes > pairs[j].bytes
 	})
 
-	// Separate significant languages from "Other"
+	// If total languages <= max count, show all
+	if len(pairs) <= maxVisibleLanguages {
+		var result []domain.LanguageStats
+		for _, pair := range pairs {
+			percentage := float64(pair.bytes) / float64(totalBytes) * 100
+			result = append(result, domain.LanguageStats{
+				Language:   pair.name,
+				Bytes:      pair.bytes,
+				Percentage: percentage,
+			})
+		}
+		return result
+	}
+
+	// Otherwise, show top N languages and group rest into "Other"
 	var result []domain.LanguageStats
 	otherBytes := 0
 
-	for _, pair := range pairs {
+	for i, pair := range pairs {
 		percentage := float64(pair.bytes) / float64(totalBytes) * 100
-		if percentage >= minPercentage {
+		if i < maxVisibleLanguages {
 			result = append(result, domain.LanguageStats{
 				Language:   pair.name,
 				Bytes:      pair.bytes,
@@ -99,7 +115,7 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 		}
 	}
 
-	// Add "Other" category if there are small languages
+	// Add "Other" category
 	if otherBytes > 0 {
 		result = append(result, domain.LanguageStats{
 			Language:   "Other",
