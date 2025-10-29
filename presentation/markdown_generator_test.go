@@ -34,7 +34,7 @@ func TestMarkdownGeneration(t *testing.T) {
 		LastUpdated: time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
 	}
 
-	gen := presentation.NewMarkdownGenerator()
+	gen := presentation.NewMarkdownGenerator(true)
 	markdown := gen.Generate(stats)
 
 	// Check if markdown contains expected sections
