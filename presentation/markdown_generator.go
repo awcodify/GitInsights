@@ -32,7 +32,7 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "</div>")
 	lines = append(lines, "")
 	lines = append(lines, "<div align=\"center\">")
-
+	lines = append(lines, "")
 	// Create badge-like elements
 	lines = append(lines, fmt.Sprintf("![Account Age](https://img.shields.io/badge/Account_Age-%s-blue?style=for-the-badge&logo=github)", m.urlEncode(stats.AccountAge)))
 	lines = append(lines, fmt.Sprintf("![Current Streak](https://img.shields.io/badge/Current_Streak-%d_days-orange?style=for-the-badge&logo=fire)", stats.CurrentStreak))
