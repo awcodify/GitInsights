@@ -221,7 +221,7 @@ func findMaxKeyInt(data map[int]int) int {
 	}
 	
 	// If no valid maximum was found (all values are 0 or negative), return -1
-	if maxVal == 0 {
+	if maxVal <= 0 {
 		return -1
 	}
 	
