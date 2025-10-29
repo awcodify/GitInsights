@@ -18,7 +18,19 @@ func TestMarkdownGeneration(t *testing.T) {
 		},
 		MostProductiveDay:  "Monday",
 		MostProductiveHour: "10:00 - 11:00",
-		LastUpdated:        time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
+		AccountAge:         "5 years 9 months",
+		CurrentStreak:      15,
+		LongestStreak:      45,
+		WeeklyDistribution: map[string]int{
+			"Monday":    10,
+			"Tuesday":   8,
+			"Wednesday": 12,
+			"Thursday":  7,
+			"Friday":    9,
+			"Saturday":  3,
+			"Sunday":    2,
+		},
+		LastUpdated: time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
 	}
 
 	gen := presentation.NewMarkdownGenerator()
@@ -47,12 +59,28 @@ func TestMarkdownGeneration(t *testing.T) {
 		t.Error("Expected language statistics section")
 	}
 
-	if !contains(markdown, "Most Productive Day: Monday") {
+	if !contains(markdown, "**Most Productive Day:** Monday") {
 		t.Error("Expected most productive day in markdown")
 	}
 
-	if !contains(markdown, "Most Productive Hour: 10:00 - 11:00") {
+	if !contains(markdown, "**Most Productive Hour:** 10:00 - 11:00") {
 		t.Error("Expected most productive hour in markdown")
+	}
+
+	if !contains(markdown, "**Account Age:** 5 years 9 months") {
+		t.Error("Expected account age in markdown")
+	}
+
+	if !contains(markdown, "**Current Streak:** 15 days") {
+		t.Error("Expected current streak in markdown")
+	}
+
+	if !contains(markdown, "**Longest Streak:** 45 days") {
+		t.Error("Expected longest streak in markdown")
+	}
+
+	if !contains(markdown, "**Weekly Commit Distribution:**") {
+		t.Error("Expected weekly distribution section")
 	}
 }
 

@@ -16,6 +16,10 @@ type ProfileStats struct {
 	TotalBytes         int
 	MostProductiveDay  string
 	MostProductiveHour string
+	AccountAge         string
+	CurrentStreak      int
+	LongestStreak      int
+	WeeklyDistribution map[string]int
 	LastUpdated        time.Time
 }
 
