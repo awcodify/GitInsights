@@ -25,7 +25,11 @@ func (f *FileManager) UpdateReadme(content string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("failed to close file: %w", cerr)
+		}
+	}()
 
 	// Read existing content
 	data, err := io.ReadAll(file)
