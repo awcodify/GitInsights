@@ -52,36 +52,54 @@ func TestMarkdownGeneration(t *testing.T) {
 	}
 
 	// Check for content
-	if !strings.Contains(markdown, "Git Insight") {
+	if !strings.Contains(markdown, "# 📊 Git Insights") {
 		t.Error("Expected title in markdown")
 	}
 
-	if !strings.Contains(markdown, "Language Statistics:") {
+	if !strings.Contains(markdown, "## 💻 Language Statistics") {
 		t.Error("Expected language statistics section")
 	}
 
-	if !strings.Contains(markdown, "**Most Productive Day:** Monday") {
+	if !strings.Contains(markdown, "## 📈 Profile Overview") {
+		t.Error("Expected profile overview section")
+	}
+
+	if !strings.Contains(markdown, "| 📅 **Most Productive Day** | Monday |") {
 		t.Error("Expected most productive day in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Most Productive Hour:** 10:00 - 11:00") {
+	if !strings.Contains(markdown, "| ⌚️ **Most Productive Hour** | 10:00 - 11:00 |") {
 		t.Error("Expected most productive hour in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Account Age:** 5 years 9 months") {
+	if !strings.Contains(markdown, "| 👤 **Account Age** | 5 years 9 months |") {
 		t.Error("Expected account age in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Current Streak:** 15 days") {
+	if !strings.Contains(markdown, "| 🔥 **Current Streak** | 15 days 🎯 |") {
 		t.Error("Expected current streak in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Longest Streak:** 45 days") {
+	if !strings.Contains(markdown, "| 🏆 **Longest Streak** | 45 days 💪 |") {
 		t.Error("Expected longest streak in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Weekly Commit Distribution:**") {
+	if !strings.Contains(markdown, "## 📊 Weekly Commit Distribution") {
 		t.Error("Expected weekly distribution section")
+	}
+
+	// Check for centered divs
+	if !strings.Contains(markdown, "<div align=\"center\">") {
+		t.Error("Expected centered div in markdown")
+	}
+
+	// Check for medals in language stats (top 3)
+	if !strings.Contains(markdown, "🥇") {
+		t.Error("Expected gold medal for top language")
+	}
+
+	if !strings.Contains(markdown, "🥈") {
+		t.Error("Expected silver medal for second language")
 	}
 }
 
@@ -91,12 +109,66 @@ func TestProgressBarGeneration(t *testing.T) {
 		Languages: []domain.LanguageStats{
 			{Language: "Go", Bytes: 100, Percentage: 100.0},
 		},
+		LastUpdated: time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
 	}
 
 	markdown := gen.Generate(stats)
 
-	// Should contain filled progress bar for 100%
-	if !strings.Contains(markdown, "████████████████████████████████████████") {
+	// Should contain filled progress bar for 100% (30 characters wide)
+	if !strings.Contains(markdown, "██████████████████████████████") {
 		t.Error("Expected full progress bar for 100%")
+	}
+}
+
+func TestCreditGeneration(t *testing.T) {
+	// Test with credit enabled
+	gen := presentation.NewMarkdownGenerator(true)
+	stats := &domain.ProfileStats{
+		Languages: []domain.LanguageStats{
+			{Language: "Go", Bytes: 100, Percentage: 100.0},
+		},
+		LastUpdated: time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
+	}
+
+	markdown := gen.Generate(stats)
+	if !strings.Contains(markdown, "Generated with [GitInsights]") {
+		t.Error("Expected credit line when showCredit is true")
+	}
+
+	// Test with credit disabled
+	genNoCredit := presentation.NewMarkdownGenerator(false)
+	markdownNoCredit := genNoCredit.Generate(stats)
+	if strings.Contains(markdownNoCredit, "Generated with [GitInsights]") {
+		t.Error("Expected no credit line when showCredit is false")
+	}
+}
+
+func TestWeeklyDistributionEmojis(t *testing.T) {
+	gen := presentation.NewMarkdownGenerator(false)
+	stats := &domain.ProfileStats{
+		Languages: []domain.LanguageStats{
+			{Language: "Go", Bytes: 100, Percentage: 100.0},
+		},
+		WeeklyDistribution: map[string]int{
+			"Monday":   10,
+			"Saturday": 5,
+			"Sunday":   3,
+		},
+		LastUpdated: time.Date(2023, 11, 15, 12, 0, 0, 0, time.UTC),
+	}
+
+	markdown := gen.Generate(stats)
+
+	// Check for weekday and weekend emojis
+	if !strings.Contains(markdown, "📅 Monday") {
+		t.Error("Expected weekday emoji for Monday")
+	}
+
+	if !strings.Contains(markdown, "🎉 Saturday") {
+		t.Error("Expected weekend emoji for Saturday")
+	}
+
+	if !strings.Contains(markdown, "🎉 Sunday") {
+		t.Error("Expected weekend emoji for Sunday")
 	}
 }

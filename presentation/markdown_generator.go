@@ -24,23 +24,38 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	var lines []string
 
 	lines = append(lines, "<!--START_SECTION:GitInsights-->")
-	lines = append(lines, "### Git Insight")
 	lines = append(lines, "")
-	lines = append(lines, "👤 **Account Age:** "+stats.AccountAge)
+	lines = append(lines, "<div align=\"center\">")
 	lines = append(lines, "")
-	lines = append(lines, "🔥 **Current Streak:** "+fmt.Sprintf("%d days", stats.CurrentStreak))
+	lines = append(lines, "# 📊 Git Insights")
 	lines = append(lines, "")
-	lines = append(lines, "🏆 **Longest Streak:** "+fmt.Sprintf("%d days", stats.LongestStreak))
+	lines = append(lines, "</div>")
 	lines = append(lines, "")
-	lines = append(lines, "📅 **Most Productive Day:** "+stats.MostProductiveDay)
+	lines = append(lines, "## 📈 Profile Overview")
 	lines = append(lines, "")
-	lines = append(lines, "⌚️ **Most Productive Hour:** "+stats.MostProductiveHour)
+	lines = append(lines, "| Metric | Value |")
+	lines = append(lines, "|--------|-------|")
+	lines = append(lines, fmt.Sprintf("| 👤 **Account Age** | %s |", stats.AccountAge))
+	lines = append(lines, fmt.Sprintf("| 🔥 **Current Streak** | %d days 🎯 |", stats.CurrentStreak))
+	lines = append(lines, fmt.Sprintf("| 🏆 **Longest Streak** | %d days 💪 |", stats.LongestStreak))
+	lines = append(lines, fmt.Sprintf("| 📅 **Most Productive Day** | %s |", stats.MostProductiveDay))
+	lines = append(lines, fmt.Sprintf("| ⌚️ **Most Productive Hour** | %s |", stats.MostProductiveHour))
 	lines = append(lines, "")
-	lines = append(lines, "📊 **Weekly Commit Distribution:**")
-	lines = append(lines, "```")
+	lines = append(lines, "## 📊 Weekly Commit Distribution")
+	lines = append(lines, "")
+	lines = append(lines, "```text")
 
 	// Order days from Monday to Sunday
 	dayOrder := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+	dayEmojis := map[string]string{
+		"Monday":    "📅",
+		"Tuesday":   "📅",
+		"Wednesday": "📅",
+		"Thursday":  "📅",
+		"Friday":    "📅",
+		"Saturday":  "🎉",
+		"Sunday":    "🎉",
+	}
 	maxCommits := 0
 	for _, count := range stats.WeeklyDistribution {
 		if count > maxCommits {
@@ -51,22 +66,35 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	for _, day := range dayOrder {
 		count := stats.WeeklyDistribution[day]
 		bar := m.generateCommitBar(count, maxCommits)
-		lines = append(lines, fmt.Sprintf("%-9s [%s] %d commits", day, bar, count))
+		emoji := dayEmojis[day]
+		lines = append(lines, fmt.Sprintf("%s %-9s [%s] %d commits", emoji, day, bar, count))
 	}
 
 	lines = append(lines, "```")
 	lines = append(lines, "")
-	lines = append(lines, "💻 **Language Statistics:**")
-	lines = append(lines, "```")
+	lines = append(lines, "## 💻 Language Statistics")
+	lines = append(lines, "")
+	lines = append(lines, "```text")
 
 	// Find max language name length for alignment
 	maxLength := m.maxLanguageLength(stats.Languages)
 
-	// Generate language statistics
-	for _, lang := range stats.Languages {
+	// Generate language statistics with emojis
+	for i, lang := range stats.Languages {
 		progressBar := m.generateProgressBar(lang.Percentage)
+		medal := ""
+		if i == 0 {
+			medal = "🥇 "
+		} else if i == 1 {
+			medal = "🥈 "
+		} else if i == 2 {
+			medal = "🥉 "
+		} else {
+			medal = "   "
+		}
 		lines = append(lines, fmt.Sprintf(
-			"%-*s [%-30s] %5.2f%%",
+			"%s%-*s [%-30s] %5.2f%%",
+			medal,
 			maxLength,
 			lang.Language,
 			progressBar,
@@ -76,15 +104,23 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 
 	lines = append(lines, "```")
 	lines = append(lines, "")
+	lines = append(lines, "---")
+	lines = append(lines, "")
 
-	// Add last update and optional credit in the same line
-	lastUpdateLine := " _Last update: " + stats.LastUpdated.Format("2006-01-02 15:04:05")
-	if m.showCredit {
-		lastUpdateLine += " • Generated with [GitInsights](https://github.com/awcodify/GitInsights)"
-	}
-	lastUpdateLine += "_"
+	// Add last update and optional credit
+	lines = append(lines, "<div align=\"center\">")
+	lines = append(lines, "")
+	lastUpdateLine := "⏰ _Last updated: " + stats.LastUpdated.Format("2006-01-02 15:04:05") + "_"
 	lines = append(lines, lastUpdateLine)
 
+	if m.showCredit {
+		lines = append(lines, "")
+		lines = append(lines, "**✨ Generated with [GitInsights](https://github.com/awcodify/GitInsights) ✨**")
+	}
+
+	lines = append(lines, "")
+	lines = append(lines, "</div>")
+	lines = append(lines, "")
 	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
@@ -92,8 +128,8 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 
 // generateProgressBar creates a visual progress bar
 func (m *MarkdownGenerator) generateProgressBar(percentage float64) string {
-	const barWidth = 40
-	numFilled := int(percentage / 100 * barWidth)
+	const barWidth = 30
+	numFilled := int(percentage / 100 * float64(barWidth))
 	filled := strings.Repeat("█", numFilled)
 	empty := strings.Repeat("░", barWidth-numFilled)
 	return filled + empty
