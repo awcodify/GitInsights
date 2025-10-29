@@ -42,7 +42,7 @@ func TestGetProfileStats(t *testing.T) {
 		},
 	}
 
-	uc := usecase.NewProfileStatsUseCase(mockRepo)
+	uc := usecase.NewProfileStatsUseCase(mockRepo, 10)
 	stats, err := uc.GetProfileStats(context.Background())
 
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 func main() {
 	// Parse command-line flags
 	includeForks := flag.Bool("include-forks", false, "Include forked repositories in analysis")
+	maxVisibleLanguages := flag.Int("max-visible-language", 10, "Maximum number of languages to display (rest grouped as 'Other')")
 	flag.Parse()
 
 	// Get GitHub token from environment
@@ -28,7 +29,7 @@ func main() {
 	fileManager := infrastructure.NewFileManager("README.md")
 
 	// Initialize use case
-	profileUseCase := usecase.NewProfileStatsUseCase(githubClient)
+	profileUseCase := usecase.NewProfileStatsUseCase(githubClient, *maxVisibleLanguages)
 
 	// Initialize presentation layer
 	markdownGen := presentation.NewMarkdownGenerator()
