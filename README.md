@@ -2,14 +2,6 @@
 
 Git Insights is a tool that provides a summary of your GitHub profile, including language usage in repositories.
 
-## Usage
-
-Add this snippet into your README.md
-
-```
-<!--START_SECTION:GitInsights-->
-<!--END_SECTION:GitInsights-->
-```
 
 ### GitHub Action
 
@@ -57,6 +49,22 @@ You can also run Git Insights manually. Clone the repository and execute the fol
 ```bash
 go run main.go
 ```
+
+### Command-Line Options
+
+By default, GitInsights **excludes forked repositories** from analysis. To include forks:
+
+```bash
+./GitInsights --include-forks
+```
+
+Or with `go run`:
+```bash
+go run main.go --include-forks
+```
+
+### Authentication
+
 Make sure you already logged in to Github with:
 ```bash
 gh auth login
@@ -76,15 +84,14 @@ export GITHUB_TOKEN=$(gh auth token)
 
 Language Statistics:
 ```
-Ruby       [█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░] 32.97%
-Go         [█████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 24.38%
-HTML       [█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 14.20%
-CSS        [█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 12.65%
-JavaScript [████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 11.71%
-Other      [█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  4.09%
+JavaScript [███████████████████████████████████░░░░░] 87.76%
+TypeScript [██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  5.10%
+Other      [██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  7.14%
 ```
 
-📅 Most Productive Day: Monday
+📅 Most Productive Day: Tuesday
 
-⌚️ Most Productive Hour: 14:00 - 15:00
+⌚️ Most Productive Hour: 08:00 - 09:00
+
+ _Last update: 2025-10-29 10:50:25_
 <!--END_SECTION:GitInsights-->
