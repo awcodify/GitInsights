@@ -174,6 +174,10 @@ func (uc *ProfileStatsUseCase) calculateMostProductiveTime(commits []domain.Comm
 	}
 
 	mostProductiveHour := findMaxKeyInt(hourCount)
+	if mostProductiveHour == -1 {
+		return "N/A"
+	}
+	
 	startHour := mostProductiveHour % 24
 	endHour := (startHour + 1) % 24
 
@@ -182,6 +186,10 @@ func (uc *ProfileStatsUseCase) calculateMostProductiveTime(commits []domain.Comm
 
 // Helper functions
 func findMaxKey(data map[string]int) string {
+	if len(data) == 0 {
+		return "N/A"
+	}
+	
 	maxKey := ""
 	maxVal := 0
 	for key, val := range data {
@@ -190,11 +198,20 @@ func findMaxKey(data map[string]int) string {
 			maxVal = val
 		}
 	}
+	
+	// If all values are 0 or negative, return N/A
+	if maxKey == "" {
+		return "N/A"
+	}
 	return maxKey
 }
 
 func findMaxKeyInt(data map[int]int) int {
-	maxKey := 0
+	if len(data) == 0 {
+		return -1
+	}
+	
+	maxKey := -1
 	maxVal := 0
 	for key, val := range data {
 		if val > maxVal {
@@ -202,6 +219,7 @@ func findMaxKeyInt(data map[int]int) int {
 			maxVal = val
 		}
 	}
+	
 	return maxKey
 }
 

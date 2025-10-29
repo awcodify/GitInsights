@@ -66,3 +66,40 @@ func TestGetProfileStats(t *testing.T) {
 		t.Errorf("Expected total bytes 1500, got: %d", stats.TotalBytes)
 	}
 }
+
+func TestGetProfileStatsWithNoCommits(t *testing.T) {
+	mockRepo := &MockGitHubRepository{
+		Username: "testuser",
+		UserProfile: &domain.UserProfile{
+			Username:  "testuser",
+			CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		LanguageStats: map[string]int{
+			"Go": 1000,
+		},
+		Commits: []domain.Commit{},
+	}
+
+	uc := usecase.NewProfileStatsUseCase(mockRepo, 10)
+	stats, err := uc.GetProfileStats(context.Background())
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if stats.MostProductiveDay != "N/A" {
+		t.Errorf("Expected MostProductiveDay 'N/A', got: %s", stats.MostProductiveDay)
+	}
+
+	if stats.MostProductiveHour != "N/A" {
+		t.Errorf("Expected MostProductiveHour 'N/A', got: %s", stats.MostProductiveHour)
+	}
+
+	if stats.CurrentStreak != 0 {
+		t.Errorf("Expected CurrentStreak 0, got: %d", stats.CurrentStreak)
+	}
+
+	if stats.LongestStreak != 0 {
+		t.Errorf("Expected LongestStreak 0, got: %d", stats.LongestStreak)
+	}
+}
