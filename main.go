@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 
@@ -11,6 +12,10 @@ import (
 )
 
 func main() {
+	// Parse command-line flags
+	includeForks := flag.Bool("include-forks", false, "Include forked repositories in analysis")
+	flag.Parse()
+
 	// Get GitHub token from environment
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
@@ -19,7 +24,7 @@ func main() {
 
 	// Initialize dependencies
 	ctx := context.Background()
-	githubClient := infrastructure.NewGitHubClient(token)
+	githubClient := infrastructure.NewGitHubClient(token, *includeForks)
 	fileManager := infrastructure.NewFileManager("README.md")
 
 	// Initialize use case
