@@ -12,6 +12,7 @@ import (
 // MockGitHubRepository for testing
 type MockGitHubRepository struct {
 	Username      string
+	UserProfile   *domain.UserProfile
 	LanguageStats map[string]int
 	Commits       []domain.Commit
 	Err           error
@@ -19,6 +20,10 @@ type MockGitHubRepository struct {
 
 func (m *MockGitHubRepository) GetUsername(ctx context.Context) (string, error) {
 	return m.Username, m.Err
+}
+
+func (m *MockGitHubRepository) GetUserProfile(ctx context.Context) (*domain.UserProfile, error) {
+	return m.UserProfile, m.Err
 }
 
 func (m *MockGitHubRepository) GetLanguageStats(ctx context.Context, username string) (map[string]int, error) {
@@ -32,6 +37,10 @@ func (m *MockGitHubRepository) GetAllCommits(ctx context.Context, username strin
 func TestGetProfileStats(t *testing.T) {
 	mockRepo := &MockGitHubRepository{
 		Username: "testuser",
+		UserProfile: &domain.UserProfile{
+			Username:  "testuser",
+			CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
 		LanguageStats: map[string]int{
 			"Go":   1000,
 			"Java": 500,

@@ -44,6 +44,27 @@ func (g *GitHubClient) GetUsername(ctx context.Context) (string, error) {
 	return *user.Login, nil
 }
 
+// GetUserProfile retrieves the authenticated user's profile information
+func (g *GitHubClient) GetUserProfile(ctx context.Context) (*domain.UserProfile, error) {
+	user, _, err := g.client.Users.Get(ctx, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	if user.Login == nil {
+		return nil, fmt.Errorf("user login is nil")
+	}
+
+	if user.CreatedAt == nil {
+		return nil, fmt.Errorf("user created_at is nil")
+	}
+
+	return &domain.UserProfile{
+		Username:  *user.Login,
+		CreatedAt: user.CreatedAt.Time,
+	}, nil
+}
+
 // filterRepositories filters out forks if includeForks is false
 func (g *GitHubClient) filterRepositories(repos []*github.Repository) []*github.Repository {
 	if g.includeForks {

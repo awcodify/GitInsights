@@ -31,6 +31,15 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 		return nil, fmt.Errorf("failed to get username: %w", err)
 	}
 
+	// Get user profile for account age
+	userProfile, err := uc.githubRepo.GetUserProfile(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	// Calculate account age
+	accountAge := uc.calculateAccountAge(userProfile.CreatedAt)
+
 	// Get language statistics
 	languageMap, err := uc.githubRepo.GetLanguageStats(ctx, username)
 	if err != nil {
@@ -55,12 +64,22 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 	mostProductiveDay := uc.calculateMostProductiveDay(commits)
 	mostProductiveHour := uc.calculateMostProductiveTime(commits)
 
+	// Calculate streaks
+	currentStreak, longestStreak := uc.calculateStreaks(commits)
+
+	// Calculate weekly distribution
+	weeklyDistribution := uc.calculateWeeklyDistribution(commits)
+
 	return &domain.ProfileStats{
 		Username:           username,
 		Languages:          languages,
 		TotalBytes:         totalBytes,
 		MostProductiveDay:  mostProductiveDay,
 		MostProductiveHour: mostProductiveHour,
+		AccountAge:         accountAge,
+		CurrentStreak:      currentStreak,
+		LongestStreak:      longestStreak,
+		WeeklyDistribution: weeklyDistribution,
 		LastUpdated:        time.Now(),
 	}, nil
 }
@@ -184,4 +203,135 @@ func findMaxKeyInt(data map[int]int) int {
 		}
 	}
 	return maxKey
+}
+
+// calculateStreaks calculates current and longest commit streaks
+func (uc *ProfileStatsUseCase) calculateStreaks(commits []domain.Commit) (int, int) {
+	if len(commits) == 0 {
+		return 0, 0
+	}
+
+	// Sort commits by date
+	sort.Slice(commits, func(i, j int) bool {
+		return commits[i].Date.Before(commits[j].Date)
+	})
+
+	// Get unique days with commits
+	uniqueDays := make(map[string]bool)
+	for _, commit := range commits {
+		day := commit.Date.Truncate(24 * time.Hour).Format("2006-01-02")
+		uniqueDays[day] = true
+	}
+
+	// Convert to sorted slice
+	var days []time.Time
+	for dayStr := range uniqueDays {
+		day, _ := time.Parse("2006-01-02", dayStr)
+		days = append(days, day)
+	}
+	sort.Slice(days, func(i, j int) bool {
+		return days[i].Before(days[j])
+	})
+
+	if len(days) == 0 {
+		return 0, 0
+	}
+
+	// Calculate streaks
+	currentStreak := 0
+	longestStreak := 0
+	tempStreak := 1
+
+	for i := 0; i < len(days); i++ {
+		if i > 0 {
+			diff := days[i].Sub(days[i-1]).Hours() / 24
+			if diff == 1 {
+				tempStreak++
+			} else {
+				if tempStreak > longestStreak {
+					longestStreak = tempStreak
+				}
+				tempStreak = 1
+			}
+		}
+	}
+
+	// Check last streak
+	if tempStreak > longestStreak {
+		longestStreak = tempStreak
+	}
+
+	// Calculate current streak (from most recent commit)
+	now := time.Now()
+	today := now.Truncate(24 * time.Hour)
+	yesterday := today.Add(-24 * time.Hour)
+	mostRecentDay := days[len(days)-1]
+
+	// If last commit was today or yesterday, start counting backwards
+	if mostRecentDay.Equal(today) || mostRecentDay.Equal(yesterday) {
+		currentStreak = 1
+		for i := len(days) - 2; i >= 0; i-- {
+			diff := days[i+1].Sub(days[i]).Hours() / 24
+			if diff == 1 {
+				currentStreak++
+			} else {
+				break
+			}
+		}
+	} else {
+		currentStreak = 0
+	}
+
+	return currentStreak, longestStreak
+}
+
+// calculateWeeklyDistribution returns commit counts for each day of the week
+func (uc *ProfileStatsUseCase) calculateWeeklyDistribution(commits []domain.Commit) map[string]int {
+	distribution := map[string]int{
+		"Monday":    0,
+		"Tuesday":   0,
+		"Wednesday": 0,
+		"Thursday":  0,
+		"Friday":    0,
+		"Saturday":  0,
+		"Sunday":    0,
+	}
+
+	for _, commit := range commits {
+		day := commit.Date.Weekday().String()
+		distribution[day]++
+	}
+
+	return distribution
+}
+
+// calculateAccountAge calculates how long the account has been active
+func (uc *ProfileStatsUseCase) calculateAccountAge(createdAt time.Time) string {
+	now := time.Now()
+	years := now.Year() - createdAt.Year()
+	months := int(now.Month()) - int(createdAt.Month())
+
+	// Adjust if the current month/day is before the creation month/day
+	if months < 0 || (months == 0 && now.Day() < createdAt.Day()) {
+		years--
+		months += 12
+	}
+
+	if months < 0 {
+		months = 0
+	}
+
+	if years > 0 {
+		if months > 0 {
+			return fmt.Sprintf("%d years %d months", years, months)
+		}
+		return fmt.Sprintf("%d years", years)
+	}
+
+	if months > 0 {
+		return fmt.Sprintf("%d months", months)
+	}
+
+	days := int(now.Sub(createdAt).Hours() / 24)
+	return fmt.Sprintf("%d days", days)
 }
