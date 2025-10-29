@@ -86,7 +86,7 @@ func TestMarkdownGeneration(t *testing.T) {
 }
 
 func TestProgressBarGeneration(t *testing.T) {
-	gen := presentation.NewMarkdownGenerator()
+	gen := presentation.NewMarkdownGenerator(true)
 	stats := &domain.ProfileStats{
 		Languages: []domain.LanguageStats{
 			{Language: "Go", Bytes: 100, Percentage: 100.0},
