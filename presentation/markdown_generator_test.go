@@ -60,10 +60,6 @@ func TestMarkdownGeneration(t *testing.T) {
 		t.Error("Expected language statistics section")
 	}
 
-	if !strings.Contains(markdown, "## 📈 Profile Overview") {
-		t.Error("Expected profile overview section")
-	}
-
 	// Check for badge-like elements
 	if !strings.Contains(markdown, "![Most Productive Day](https://img.shields.io/badge/Most_Productive_Day-Monday-green?style=for-the-badge&logo=calendar)") {
 		t.Error("Expected most productive day badge in markdown")

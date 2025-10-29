@@ -104,9 +104,6 @@ export GITHUB_TOKEN=$(gh auth token)
 </div>
 
 <div align="center">
-
-## 📈 Profile Overview
-
 ![Account Age](https://img.shields.io/badge/Account_Age-9_years_6_months-blue?style=for-the-badge&logo=github)
 ![Current Streak](https://img.shields.io/badge/Current_Streak-1_days-orange?style=for-the-badge&logo=fire)
 ![Longest Streak](https://img.shields.io/badge/Longest_Streak-5_days-red?style=for-the-badge&logo=trophy)
@@ -148,7 +145,7 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-⏰ _Last updated: 2025-10-29 14:38:38_
+⏰ _Last updated: 2025-10-29 14:40:17_
 
 **✨ Generated with [GitInsights](https://github.com/awcodify/GitInsights) ✨**
 
