@@ -8,11 +8,15 @@ import (
 )
 
 // MarkdownGenerator generates markdown content for profile stats
-type MarkdownGenerator struct{}
+type MarkdownGenerator struct {
+	showCredit bool
+}
 
 // NewMarkdownGenerator creates a new markdown generator
-func NewMarkdownGenerator() *MarkdownGenerator {
-	return &MarkdownGenerator{}
+func NewMarkdownGenerator(showCredit bool) *MarkdownGenerator {
+	return &MarkdownGenerator{
+		showCredit: showCredit,
+	}
 }
 
 // Generate creates markdown content from profile stats
@@ -72,7 +76,15 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 
 	lines = append(lines, "```")
 	lines = append(lines, "")
-	lines = append(lines, " _Last update: "+stats.LastUpdated.Format("2006-01-02 15:04:05")+"_")
+
+	// Add last update and optional credit in the same line
+	lastUpdateLine := " _Last update: " + stats.LastUpdated.Format("2006-01-02 15:04:05")
+	if m.showCredit {
+		lastUpdateLine += " • Generated with [GitInsights](https://github.com/awcodify/GitInsights)"
+	}
+	lastUpdateLine += "_"
+	lines = append(lines, lastUpdateLine)
+
 	lines = append(lines, "<!--END_SECTION:GitInsights-->")
 
 	return strings.Join(lines, "\n")
