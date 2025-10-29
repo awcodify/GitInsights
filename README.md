@@ -63,6 +63,22 @@ Or with `go run`:
 go run main.go --include-forks
 ```
 
+You can limit the number of languages displayed in the language statistics (default is 10):
+
+```bash
+./GitInsights --max-visible-language 5
+```
+
+Or with `go run`:
+```bash
+go run main.go --max-visible-language 5
+```
+
+Combine multiple options:
+```bash
+./GitInsights --include-forks --max-visible-language 15
+```
+
 ### Authentication
 
 Make sure you already logged in to Github with:
