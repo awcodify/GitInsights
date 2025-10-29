@@ -199,7 +199,7 @@ func findMaxKey(data map[string]int) string {
 		}
 	}
 	
-	// If all values are 0 or negative, return N/A
+	// If no values are greater than 0, return N/A
 	if maxKey == "" {
 		return "N/A"
 	}
@@ -218,6 +218,11 @@ func findMaxKeyInt(data map[int]int) int {
 			maxKey = key
 			maxVal = val
 		}
+	}
+	
+	// If no valid maximum was found (all values are 0 or negative), return -1
+	if maxVal == 0 {
+		return -1
 	}
 	
 	return maxKey
