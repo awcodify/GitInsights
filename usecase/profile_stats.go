@@ -86,6 +86,11 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 
 // processLanguages sorts and combines languages, showing top N languages
 func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, totalBytes int) []domain.LanguageStats {
+	// Guard against division by zero
+	if totalBytes == 0 {
+		return []domain.LanguageStats{}
+	}
+
 	maxVisibleLanguages := uc.maxVisibleLanguages
 
 	// Sort languages by bytes
@@ -174,6 +179,10 @@ func (uc *ProfileStatsUseCase) calculateMostProductiveTime(commits []domain.Comm
 	}
 
 	mostProductiveHour := findMaxKeyInt(hourCount)
+	if mostProductiveHour == -1 {
+		return "N/A"
+	}
+
 	startHour := mostProductiveHour % 24
 	endHour := (startHour + 1) % 24
 
@@ -182,26 +191,46 @@ func (uc *ProfileStatsUseCase) calculateMostProductiveTime(commits []domain.Comm
 
 // Helper functions
 func findMaxKey(data map[string]int) string {
+	if len(data) == 0 {
+		return "N/A"
+	}
+
 	maxKey := ""
-	maxVal := 0
+	maxVal := -1 // Use -1 to handle cases where all values are 0
 	for key, val := range data {
 		if val > maxVal {
 			maxKey = key
 			maxVal = val
 		}
 	}
+
+	// If all values are 0 or negative, return N/A
+	if maxVal <= 0 {
+		return "N/A"
+	}
+
 	return maxKey
 }
 
 func findMaxKeyInt(data map[int]int) int {
-	maxKey := 0
-	maxVal := 0
+	if len(data) == 0 {
+		return -1 // Return -1 to indicate no valid hour found
+	}
+
+	maxKey := -1
+	maxVal := -1 // Use -1 to handle cases where all values are 0
 	for key, val := range data {
 		if val > maxVal {
 			maxKey = key
 			maxVal = val
 		}
 	}
+
+	// If all values are 0 or negative, return -1 to indicate no valid hour
+	if maxVal <= 0 {
+		return -1
+	}
+
 	return maxKey
 }
 
@@ -311,14 +340,15 @@ func (uc *ProfileStatsUseCase) calculateAccountAge(createdAt time.Time) string {
 	years := now.Year() - createdAt.Year()
 	months := int(now.Month()) - int(createdAt.Month())
 
-	// Adjust if the current month/day is before the creation month/day
-	if months < 0 || (months == 0 && now.Day() < createdAt.Day()) {
-		years--
-		months += 12
+	// Adjust months if the current day is before the creation day
+	if now.Day() < createdAt.Day() {
+		months--
 	}
 
+	// If months negative, adjust years and months
 	if months < 0 {
-		months = 0
+		years--
+		months += 12
 	}
 
 	if years > 0 {
