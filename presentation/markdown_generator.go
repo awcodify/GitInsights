@@ -31,15 +31,20 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "")
 	lines = append(lines, "</div>")
 	lines = append(lines, "")
+	lines = append(lines, "<div align=\"center\">")
+	lines = append(lines, "")
 	lines = append(lines, "## 📈 Profile Overview")
 	lines = append(lines, "")
-	lines = append(lines, "| Metric | Value |")
-	lines = append(lines, "|--------|-------|")
-	lines = append(lines, fmt.Sprintf("| 👤 **Account Age** | %s |", stats.AccountAge))
-	lines = append(lines, fmt.Sprintf("| 🔥 **Current Streak** | %d days 🎯 |", stats.CurrentStreak))
-	lines = append(lines, fmt.Sprintf("| 🏆 **Longest Streak** | %d days 💪 |", stats.LongestStreak))
-	lines = append(lines, fmt.Sprintf("| 📅 **Most Productive Day** | %s |", stats.MostProductiveDay))
-	lines = append(lines, fmt.Sprintf("| ⌚️ **Most Productive Hour** | %s |", stats.MostProductiveHour))
+
+	// Create badge-like elements
+	lines = append(lines, fmt.Sprintf("![Account Age](https://img.shields.io/badge/Account_Age-%s-blue?style=for-the-badge&logo=github)", m.urlEncode(stats.AccountAge)))
+	lines = append(lines, fmt.Sprintf("![Current Streak](https://img.shields.io/badge/Current_Streak-%d_days-orange?style=for-the-badge&logo=fire)", stats.CurrentStreak))
+	lines = append(lines, fmt.Sprintf("![Longest Streak](https://img.shields.io/badge/Longest_Streak-%d_days-red?style=for-the-badge&logo=trophy)", stats.LongestStreak))
+	lines = append(lines, "")
+	lines = append(lines, fmt.Sprintf("![Most Productive Day](https://img.shields.io/badge/Most_Productive_Day-%s-green?style=for-the-badge&logo=calendar)", m.urlEncode(stats.MostProductiveDay)))
+	lines = append(lines, fmt.Sprintf("![Most Productive Hour](https://img.shields.io/badge/Most_Productive_Hour-%s-purple?style=for-the-badge&logo=clock)", m.urlEncode(stats.MostProductiveHour)))
+	lines = append(lines, "")
+	lines = append(lines, "</div>")
 	lines = append(lines, "")
 	lines = append(lines, "## 📊 Weekly Commit Distribution")
 	lines = append(lines, "")
@@ -156,4 +161,11 @@ func (m *MarkdownGenerator) maxLanguageLength(languages []domain.LanguageStats) 
 		}
 	}
 	return maxLength
+}
+
+// urlEncode encodes a string for use in URLs (simple encoding for spaces and special chars)
+func (m *MarkdownGenerator) urlEncode(s string) string {
+	s = strings.ReplaceAll(s, " ", "_")
+	s = strings.ReplaceAll(s, "-", "--")
+	return s
 }

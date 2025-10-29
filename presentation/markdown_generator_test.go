@@ -64,24 +64,25 @@ func TestMarkdownGeneration(t *testing.T) {
 		t.Error("Expected profile overview section")
 	}
 
-	if !strings.Contains(markdown, "| 📅 **Most Productive Day** | Monday |") {
-		t.Error("Expected most productive day in markdown")
+	// Check for badge-like elements
+	if !strings.Contains(markdown, "![Most Productive Day](https://img.shields.io/badge/Most_Productive_Day-Monday-green?style=for-the-badge&logo=calendar)") {
+		t.Error("Expected most productive day badge in markdown")
 	}
 
-	if !strings.Contains(markdown, "| ⌚️ **Most Productive Hour** | 10:00 - 11:00 |") {
-		t.Error("Expected most productive hour in markdown")
+	if !strings.Contains(markdown, "![Most Productive Hour](https://img.shields.io/badge/Most_Productive_Hour-10:00_--_11:00-purple?style=for-the-badge&logo=clock)") {
+		t.Error("Expected most productive hour badge in markdown")
 	}
 
-	if !strings.Contains(markdown, "| 👤 **Account Age** | 5 years 9 months |") {
-		t.Error("Expected account age in markdown")
+	if !strings.Contains(markdown, "![Account Age](https://img.shields.io/badge/Account_Age-5_years_9_months-blue?style=for-the-badge&logo=github)") {
+		t.Error("Expected account age badge in markdown")
 	}
 
-	if !strings.Contains(markdown, "| 🔥 **Current Streak** | 15 days 🎯 |") {
-		t.Error("Expected current streak in markdown")
+	if !strings.Contains(markdown, "![Current Streak](https://img.shields.io/badge/Current_Streak-15_days-orange?style=for-the-badge&logo=fire)") {
+		t.Error("Expected current streak badge in markdown")
 	}
 
-	if !strings.Contains(markdown, "| 🏆 **Longest Streak** | 45 days 💪 |") {
-		t.Error("Expected longest streak in markdown")
+	if !strings.Contains(markdown, "![Longest Streak](https://img.shields.io/badge/Longest_Streak-45_days-red?style=for-the-badge&logo=trophy)") {
+		t.Error("Expected longest streak badge in markdown")
 	}
 
 	if !strings.Contains(markdown, "## 📊 Weekly Commit Distribution") {

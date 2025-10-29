@@ -103,15 +103,18 @@ export GITHUB_TOKEN=$(gh auth token)
 
 </div>
 
+<div align="center">
+
 ## 📈 Profile Overview
 
-| Metric | Value |
-|--------|-------|
-| 👤 **Account Age** | 9 years 6 months |
-| 🔥 **Current Streak** | 1 days 🎯 |
-| 🏆 **Longest Streak** | 5 days 💪 |
-| 📅 **Most Productive Day** | Tuesday |
-| ⌚️ **Most Productive Hour** | 08:00 - 09:00 |
+![Account Age](https://img.shields.io/badge/Account_Age-9_years_6_months-blue?style=for-the-badge&logo=github)
+![Current Streak](https://img.shields.io/badge/Current_Streak-1_days-orange?style=for-the-badge&logo=fire)
+![Longest Streak](https://img.shields.io/badge/Longest_Streak-5_days-red?style=for-the-badge&logo=trophy)
+
+![Most Productive Day](https://img.shields.io/badge/Most_Productive_Day-Tuesday-green?style=for-the-badge&logo=calendar)
+![Most Productive Hour](https://img.shields.io/badge/Most_Productive_Hour-08:00_--_09:00-purple?style=for-the-badge&logo=clock)
+
+</div>
 
 ## 📊 Weekly Commit Distribution
 
@@ -145,7 +148,7 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-⏰ _Last updated: 2025-10-29 14:35:29_
+⏰ _Last updated: 2025-10-29 14:38:38_
 
 **✨ Generated with [GitInsights](https://github.com/awcodify/GitInsights) ✨**
 
