@@ -99,8 +99,6 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-# 📊 Git Insights Dashboard
-
 [![Profile Stats](https://img.shields.io/badge/Git-Insights-blueviolet?style=for-the-badge&logo=github)](https://github.com/awcodify/GitInsights)
 
 </div>
@@ -178,12 +176,12 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-![JavaScript](https://img.shields.io/badge/JavaScript-87.6%25-blue?style=flat-square&logo=javascript&logoColor=white) 
-![TypeScript](https://img.shields.io/badge/TypeScript-5.1%25-blue?style=flat-square&logo=typescript&logoColor=white) 
-![SCSS](https://img.shields.io/badge/SCSS-2.0%25-blue?style=flat-square&logo=sass&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-87.6%25-blue?style=flat-square&logo=javascript) 
+![TypeScript](https://img.shields.io/badge/TypeScript-5.1%25-blue?style=flat-square&logo=typescript) 
+![SCSS](https://img.shields.io/badge/SCSS-2.0%25-blue?style=flat-square&logo=sass)
 
-![Go](https://img.shields.io/badge/Go-1.7%25-blue?style=flat-square&logo=go&logoColor=white) 
-![HTML](https://img.shields.io/badge/HTML-1.2%25-blue?style=flat-square&logo=html5&logoColor=white) 
+![Go](https://img.shields.io/badge/Go-1.7%25-blue?style=flat-square&logo=go) 
+![HTML](https://img.shields.io/badge/HTML-1.2%25-blue?style=flat-square&logo=html5) 
 
 </div>
 
@@ -210,7 +208,7 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-<sub>📅 Last updated: Thursday, October 30, 2025 at 9:18 AM</sub>
+<sub>📅 Last updated: Thursday, October 30, 2025 at 9:20 AM</sub>
 
 <sub>⚡ Generated with [GitInsights](https://github.com/awcodify/GitInsights)</sub>
 
