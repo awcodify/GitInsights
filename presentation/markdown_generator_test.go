@@ -52,36 +52,49 @@ func TestMarkdownGeneration(t *testing.T) {
 	}
 
 	// Check for content
-	if !strings.Contains(markdown, "Git Insight") {
-		t.Error("Expected title in markdown")
+	if !strings.Contains(markdown, "Git Insights Dashboard") {
+		t.Error("Expected dashboard title in markdown")
 	}
 
-	if !strings.Contains(markdown, "Language Statistics:") {
-		t.Error("Expected language statistics section")
+	if !strings.Contains(markdown, "Language Distribution") {
+		t.Error("Expected language distribution section")
 	}
 
-	if !strings.Contains(markdown, "**Most Productive Day:** Monday") {
+	if !strings.Contains(markdown, "Most Productive Day") {
 		t.Error("Expected most productive day in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Most Productive Hour:** 10:00 - 11:00") {
-		t.Error("Expected most productive hour in markdown")
+	if !strings.Contains(markdown, "Peak Hours") {
+		t.Error("Expected peak hours in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Account Age:** 5 years 9 months") {
+	if !strings.Contains(markdown, "5 years 9 months") {
 		t.Error("Expected account age in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Current Streak:** 15 days") {
+	if !strings.Contains(markdown, "15 days") {
 		t.Error("Expected current streak in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Longest Streak:** 45 days") {
+	if !strings.Contains(markdown, "45 days") {
 		t.Error("Expected longest streak in markdown")
 	}
 
-	if !strings.Contains(markdown, "**Weekly Commit Distribution:**") {
-		t.Error("Expected weekly distribution section")
+	if !strings.Contains(markdown, "Weekly Activity") {
+		t.Error("Expected weekly activity section")
+	}
+
+	// Check for modern elements
+	if !strings.Contains(markdown, "<div align=\"center\">") {
+		t.Error("Expected centered div for modern layout")
+	}
+
+	if !strings.Contains(markdown, "<table") {
+		t.Error("Expected table for stats cards")
+	}
+
+	if !strings.Contains(markdown, "<details>") {
+		t.Error("Expected collapsible details section")
 	}
 }
 
