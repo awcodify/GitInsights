@@ -31,7 +31,7 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "")
 	lines = append(lines, "# 📊 Git Insights Dashboard")
 	lines = append(lines, "")
-	lines = append(lines, "[![Profile Stats](https://img.shields.io/badge/Profile-Statistics-blueviolet?style=for-the-badge&logo=github)](https://github.com)")
+	lines = append(lines, "[![Profile Stats](https://img.shields.io/badge/Git-Insights-blueviolet?style=for-the-badge&logo=github)](https://github.com/awcodify/GitInsights)")
 	lines = append(lines, "")
 	lines = append(lines, "</div>")
 	lines = append(lines, "")
