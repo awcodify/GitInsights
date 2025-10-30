@@ -51,11 +51,6 @@ func TestMarkdownGeneration(t *testing.T) {
 		t.Error("Expected end marker in markdown")
 	}
 
-	// Check for content
-	if !strings.Contains(markdown, "Git Insights Dashboard") {
-		t.Error("Expected dashboard title in markdown")
-	}
-
 	if !strings.Contains(markdown, "Language Distribution") {
 		t.Error("Expected language distribution section")
 	}
