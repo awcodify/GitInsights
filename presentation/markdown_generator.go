@@ -112,7 +112,8 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 		count := stats.WeeklyDistribution[day]
 		bar := m.generateModernCommitBar(count, maxCommits)
 		emoji := m.getDayEmoji(day)
-		lines = append(lines, fmt.Sprintf("%s %-9s %s %4d commits", emoji, day, bar, count))
+		// Use fixed spacing after emoji and padding for day names
+		lines = append(lines, fmt.Sprintf("%s %-10s %s %4d commits", emoji, day, bar, count))
 	}
 
 	lines = append(lines, "```")
@@ -278,7 +279,7 @@ func (m *MarkdownGenerator) getDayEmoji(day string) string {
 		"Monday":    "🌙",
 		"Tuesday":   "🔥",
 		"Wednesday": "💎",
-		"Thursday":  "⚡",
+		"Thursday":  "💚",
 		"Friday":    "🎉",
 		"Saturday":  "🌟",
 		"Sunday":    "☀️",
