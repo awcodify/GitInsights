@@ -50,7 +50,7 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "<table align=\"center\">")
 	lines = append(lines, "<tr>")
 	lines = append(lines, "<td align=\"center\" width=\"200\">")
-	lines = append(lines, "<img src=\"https://img.icons8.com/fluency/96/000000/user.png\" width=\"48\"/>")
+	lines = append(lines, "<img src=\"https://img.icons8.com/fluency/96/000000/resume.png\" width=\"48\"/>")
 	lines = append(lines, "<br><strong>Account Age</strong>")
 	lines = append(lines, "<br><code>"+stats.AccountAge+"</code>")
 	lines = append(lines, "</td>")

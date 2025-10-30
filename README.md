@@ -101,7 +101,7 @@ export GITHUB_TOKEN=$(gh auth token)
 
 # 📊 Git Insights Dashboard
 
-[![Profile Stats](https://img.shields.io/badge/Profile-Statistics-blueviolet?style=for-the-badge&logo=github)](https://github.com)
+[![Profile Stats](https://img.shields.io/badge/Git-Insights-blueviolet?style=for-the-badge&logo=github)](https://github.com/awcodify/GitInsights)
 
 </div>
 
@@ -116,7 +116,7 @@ export GITHUB_TOKEN=$(gh auth token)
 <table align="center">
 <tr>
 <td align="center" width="200">
-<img src="https://img.icons8.com/fluency/96/000000/user.png" width="48"/>
+<img src="https://img.icons8.com/fluency/96/000000/resume.png" width="48"/>
 <br><strong>Account Age</strong>
 <br><code>9 years 6 months</code>
 </td>
@@ -144,7 +144,7 @@ export GITHUB_TOKEN=$(gh auth token)
 <td align="center">
 <img src="https://img.icons8.com/fluency/96/000000/calendar.png" width="40"/>
 <br><strong>Most Productive Day</strong>
-<br>🔥 <code>Tuesday</code>
+<br>⚡ <code>Thursday</code>
 </td>
 <td align="center">
 <img src="https://img.icons8.com/fluency/96/000000/clock.png" width="40"/>
@@ -210,7 +210,7 @@ export GITHUB_TOKEN=$(gh auth token)
 
 <div align="center">
 
-<sub>📅 Last updated: Thursday, October 30, 2025 at 9:09 AM</sub>
+<sub>📅 Last updated: Thursday, October 30, 2025 at 9:18 AM</sub>
 
 <sub>⚡ Generated with [GitInsights](https://github.com/awcodify/GitInsights)</sub>
 
