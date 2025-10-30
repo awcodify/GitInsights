@@ -136,7 +136,7 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 			break
 		}
 
-		lines = append(lines, fmt.Sprintf("![%s](https://img.shields.io/badge/%s-%.1f%%25-blue?style=flat-square&logo=%s&logoColor=white)",
+		lines = append(lines, fmt.Sprintf("![%s](https://img.shields.io/badge/%s-%.1f%%25-blue?style=flat-square&logo=%s)",
 			lang.Language,
 			strings.ReplaceAll(lang.Language, " ", "_"),
 			lang.Percentage,
