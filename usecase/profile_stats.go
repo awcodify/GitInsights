@@ -84,6 +84,12 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 	// Calculate weekly distribution
 	weeklyDistribution := uc.calculateWeeklyDistribution(commits)
 
+	// Calculate weekly progress
+	weeklyProgress := uc.calculateWeeklyProgress(commits)
+
+	// Calculate overtime activity
+	overtimeActivity := uc.calculateOvertimeActivity(commits)
+
 	return &domain.ProfileStats{
 		Username:           username,
 		Languages:          languages,
@@ -94,6 +100,8 @@ func (uc *ProfileStatsUseCase) GetProfileStats(ctx context.Context) (*domain.Pro
 		CurrentStreak:      currentStreak,
 		LongestStreak:      longestStreak,
 		WeeklyDistribution: weeklyDistribution,
+		WeeklyProgress:     weeklyProgress,
+		OvertimeActivity:   overtimeActivity,
 		LastUpdated:        time.Now(),
 	}, nil
 }
@@ -401,4 +409,88 @@ func (uc *ProfileStatsUseCase) calculateAccountAge(createdAt time.Time) string {
 
 	days := int(now.Sub(createdAt).Hours() / 24)
 	return fmt.Sprintf("%d days", days)
+}
+
+// calculateWeeklyProgress compares current week commits with last week
+func (uc *ProfileStatsUseCase) calculateWeeklyProgress(commits []domain.Commit) domain.WeeklyProgress {
+	now := time.Now()
+
+	// Get the start of current week (Monday)
+	weekday := int(now.Weekday())
+	if weekday == 0 {
+		weekday = 7 // Sunday = 7
+	}
+	currentWeekStart := now.AddDate(0, 0, -(weekday - 1)).Truncate(24 * time.Hour)
+	lastWeekStart := currentWeekStart.AddDate(0, 0, -7)
+	lastWeekEnd := currentWeekStart.Add(-1 * time.Second)
+
+	currentWeekCount := 0
+	lastWeekCount := 0
+
+	for _, commit := range commits {
+		commitDate := commit.Date.Truncate(24 * time.Hour)
+
+		if commitDate.After(lastWeekStart) || commitDate.Equal(lastWeekStart) {
+			if commitDate.Before(currentWeekStart) || commitDate.Equal(lastWeekEnd) {
+				// Last week
+				lastWeekCount++
+			} else {
+				// Current week
+				currentWeekCount++
+			}
+		}
+	}
+
+	changeAmount := currentWeekCount - lastWeekCount
+	changePercent := 0.0
+	if lastWeekCount > 0 {
+		changePercent = (float64(changeAmount) / float64(lastWeekCount)) * 100
+	} else if currentWeekCount > 0 {
+		changePercent = 100.0
+	}
+
+	return domain.WeeklyProgress{
+		CurrentWeek:   currentWeekCount,
+		LastWeek:      lastWeekCount,
+		ChangeAmount:  changeAmount,
+		ChangePercent: changePercent,
+	}
+}
+
+// calculateOvertimeActivity calculates monthly commit counts for the last 6 months
+func (uc *ProfileStatsUseCase) calculateOvertimeActivity(commits []domain.Commit) domain.OvertimeActivity {
+	now := time.Now()
+
+	// Create map to store monthly commits
+	monthlyMap := make(map[string]int)
+
+	// Calculate for the last 6 months
+	for i := 5; i >= 0; i-- {
+		month := now.AddDate(0, -i, 0)
+		monthKey := month.Format("Jan 2006")
+		monthlyMap[monthKey] = 0
+	}
+
+	// Count commits for each month
+	for _, commit := range commits {
+		monthKey := commit.Date.Format("Jan 2006")
+		if _, exists := monthlyMap[monthKey]; exists {
+			monthlyMap[monthKey]++
+		}
+	}
+
+	// Convert to sorted slice
+	var monthlyData []domain.MonthlyCommits
+	for i := 5; i >= 0; i-- {
+		month := now.AddDate(0, -i, 0)
+		monthKey := month.Format("Jan 2006")
+		monthlyData = append(monthlyData, domain.MonthlyCommits{
+			Month:   monthKey,
+			Commits: monthlyMap[monthKey],
+		})
+	}
+
+	return domain.OvertimeActivity{
+		MonthlyData: monthlyData,
+	}
 }

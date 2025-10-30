@@ -90,6 +90,51 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "</table>")
 	lines = append(lines, "")
 
+	// Weekly Progress Section
+	lines = append(lines, "<div align=\"center\">")
+	lines = append(lines, "")
+	lines = append(lines, "## 📊 Weekly Progress")
+	lines = append(lines, "")
+	lines = append(lines, "</div>")
+	lines = append(lines, "")
+
+	// Display weekly progress comparison
+	lines = append(lines, "<table align=\"center\">")
+	lines = append(lines, "<tr>")
+	lines = append(lines, "<td align=\"center\" width=\"200\">")
+	lines = append(lines, "<img src=\"https://img.icons8.com/fluency/96/000000/calendar-7.png\" width=\"48\"/>")
+	lines = append(lines, "<br><strong>This Week</strong>")
+	lines = append(lines, fmt.Sprintf("<br><code>%d commits</code>", stats.WeeklyProgress.CurrentWeek))
+	lines = append(lines, "</td>")
+	lines = append(lines, "<td align=\"center\" width=\"200\">")
+	lines = append(lines, "<img src=\"https://img.icons8.com/fluency/96/000000/calendar-6.png\" width=\"48\"/>")
+	lines = append(lines, "<br><strong>Last Week</strong>")
+	lines = append(lines, fmt.Sprintf("<br><code>%d commits</code>", stats.WeeklyProgress.LastWeek))
+	lines = append(lines, "</td>")
+	lines = append(lines, "<td align=\"center\" width=\"200\">")
+
+	// Determine the icon and text for change
+	changeIcon := "https://img.icons8.com/fluency/96/000000/arrow-up.png"
+	changeText := "Growth"
+	changeSign := "+"
+	if stats.WeeklyProgress.ChangeAmount < 0 {
+		changeIcon = "https://img.icons8.com/fluency/96/000000/arrow-down.png"
+		changeText = "Change"
+		changeSign = ""
+	} else if stats.WeeklyProgress.ChangeAmount == 0 {
+		changeIcon = "https://img.icons8.com/fluency/96/000000/left-and-right-arrows.png"
+		changeText = "No Change"
+		changeSign = ""
+	}
+
+	lines = append(lines, fmt.Sprintf("<img src=\"%s\" width=\"48\"/>", changeIcon))
+	lines = append(lines, fmt.Sprintf("<br><strong>%s</strong>", changeText))
+	lines = append(lines, fmt.Sprintf("<br><code>%s%d (%s%.1f%%)</code>", changeSign, stats.WeeklyProgress.ChangeAmount, changeSign, stats.WeeklyProgress.ChangePercent))
+	lines = append(lines, "</td>")
+	lines = append(lines, "</tr>")
+	lines = append(lines, "</table>")
+	lines = append(lines, "")
+
 	// Weekly Activity Chart
 	lines = append(lines, "<div align=\"center\">")
 	lines = append(lines, "")
@@ -114,6 +159,31 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 		emoji := m.getDayEmoji(day)
 		// Use fixed spacing after emoji and padding for day names
 		lines = append(lines, fmt.Sprintf("%s %-10s %s %4d commits", emoji, day, bar, count))
+	}
+
+	lines = append(lines, "```")
+	lines = append(lines, "")
+
+	// Overtime Activity Chart
+	lines = append(lines, "<div align=\"center\">")
+	lines = append(lines, "")
+	lines = append(lines, "## 📅 Overtime Activity (Last 6 Months)")
+	lines = append(lines, "")
+	lines = append(lines, "</div>")
+	lines = append(lines, "")
+	lines = append(lines, "```text")
+
+	// Find max commits for scaling
+	maxOvertimeCommits := 0
+	for _, monthData := range stats.OvertimeActivity.MonthlyData {
+		if monthData.Commits > maxOvertimeCommits {
+			maxOvertimeCommits = monthData.Commits
+		}
+	}
+
+	for _, monthData := range stats.OvertimeActivity.MonthlyData {
+		bar := m.generateModernCommitBar(monthData.Commits, maxOvertimeCommits)
+		lines = append(lines, fmt.Sprintf("%-10s %s %4d commits", monthData.Month, bar, monthData.Commits))
 	}
 
 	lines = append(lines, "```")
