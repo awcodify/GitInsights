@@ -131,24 +131,15 @@ func (m *MarkdownGenerator) Generate(stats *domain.ProfileStats) string {
 	lines = append(lines, "<div align=\"center\">")
 	lines = append(lines, "")
 
-	// Generate language statistics with modern styling
+	// Generate language statistics with modern styling - display top 5 languages in badges on a single line
+	var badges []string
 	for i, lang := range stats.Languages {
-		if i >= 5 { // Show top 5 in visual cards
+		if i >= 5 {
 			break
 		}
-
-		lines = append(lines, fmt.Sprintf("![%s](https://img.shields.io/badge/%s-%.1f%%25-blue?style=flat-square&logo=%s)",
-			lang.Language,
-			strings.ReplaceAll(lang.Language, " ", "_"),
-			lang.Percentage,
-			m.getLanguageLogo(lang.Language)))
-
-		if (i+1)%3 == 0 {
-			lines = append(lines, "")
-		} else {
-			lines[len(lines)-1] += " "
-		}
+		badges = append(badges, fmt.Sprintf("![%s](https://img.shields.io/badge/%s-%.1f%%25-blue?style=flat-square&logo=%s)", lang.Language, strings.ReplaceAll(lang.Language, " ", "_"), lang.Percentage, m.getLanguageLogo(lang.Language)))
 	}
+	lines = append(lines, strings.Join(badges, " "))
 
 	lines = append(lines, "")
 	lines = append(lines, "</div>")
