@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"GitInsights/domain"
@@ -13,13 +14,26 @@ import (
 type ProfileStatsUseCase struct {
 	githubRepo          domain.GitHubRepository
 	maxVisibleLanguages int
+	excludeLanguages    []string
 }
 
 // NewProfileStatsUseCase creates a new instance
-func NewProfileStatsUseCase(githubRepo domain.GitHubRepository, maxVisibleLanguages int) *ProfileStatsUseCase {
+func NewProfileStatsUseCase(githubRepo domain.GitHubRepository, maxVisibleLanguages int, excludeLanguagesStr string) *ProfileStatsUseCase {
+	var excludeLanguages []string
+	if excludeLanguagesStr != "" {
+		// Split by comma and trim spaces, convert to lowercase for case-insensitive matching
+		langs := strings.Split(excludeLanguagesStr, ",")
+		for _, lang := range langs {
+			trimmed := strings.TrimSpace(lang)
+			if trimmed != "" {
+				excludeLanguages = append(excludeLanguages, strings.ToLower(trimmed))
+			}
+		}
+	}
 	return &ProfileStatsUseCase{
 		githubRepo:          githubRepo,
 		maxVisibleLanguages: maxVisibleLanguages,
+		excludeLanguages:    excludeLanguages,
 	}
 }
 
@@ -93,6 +107,29 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 
 	maxVisibleLanguages := uc.maxVisibleLanguages
 
+	// Filter out excluded languages and recalculate total bytes
+	filteredLanguageMap := make(map[string]int)
+	filteredTotalBytes := 0
+	for lang, bytes := range languageMap {
+		// Check if language should be excluded (case-insensitive)
+		excluded := false
+		for _, excludedLang := range uc.excludeLanguages {
+			if strings.ToLower(lang) == excludedLang {
+				excluded = true
+				break
+			}
+		}
+		if !excluded {
+			filteredLanguageMap[lang] = bytes
+			filteredTotalBytes += bytes
+		}
+	}
+
+	// If all languages are excluded, return empty
+	if filteredTotalBytes == 0 {
+		return []domain.LanguageStats{}
+	}
+
 	// Sort languages by bytes
 	type langPair struct {
 		name  string
@@ -100,7 +137,7 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 	}
 
 	var pairs []langPair
-	for lang, bytes := range languageMap {
+	for lang, bytes := range filteredLanguageMap {
 		pairs = append(pairs, langPair{lang, bytes})
 	}
 
@@ -112,7 +149,7 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 	if len(pairs) <= maxVisibleLanguages {
 		var result []domain.LanguageStats
 		for _, pair := range pairs {
-			percentage := float64(pair.bytes) / float64(totalBytes) * 100
+			percentage := float64(pair.bytes) / float64(filteredTotalBytes) * 100
 			result = append(result, domain.LanguageStats{
 				Language:   pair.name,
 				Bytes:      pair.bytes,
@@ -127,7 +164,7 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 	otherBytes := 0
 
 	for i, pair := range pairs {
-		percentage := float64(pair.bytes) / float64(totalBytes) * 100
+		percentage := float64(pair.bytes) / float64(filteredTotalBytes) * 100
 		if i < maxVisibleLanguages {
 			result = append(result, domain.LanguageStats{
 				Language:   pair.name,
@@ -144,7 +181,7 @@ func (uc *ProfileStatsUseCase) processLanguages(languageMap map[string]int, tota
 		result = append(result, domain.LanguageStats{
 			Language:   "Other",
 			Bytes:      otherBytes,
-			Percentage: float64(otherBytes) / float64(totalBytes) * 100,
+			Percentage: float64(otherBytes) / float64(filteredTotalBytes) * 100,
 		})
 	}
 
