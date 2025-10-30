@@ -16,6 +16,7 @@ func main() {
 	includeForks := flag.Bool("include-forks", false, "Include forked repositories in analysis")
 	maxVisibleLanguages := flag.Int("max-visible-language", 10, "Maximum number of languages to display (rest grouped as 'Other')")
 	showCredit := flag.Bool("show-credit", true, "Show GitInsight credit in the generated output")
+	excludeLanguages := flag.String("exclude-languages", "", "Comma-separated list of languages to exclude (e.g., 'scss,html')")
 	flag.Parse()
 
 	// Get GitHub token from environment
@@ -30,7 +31,7 @@ func main() {
 	fileManager := infrastructure.NewFileManager("README.md")
 
 	// Initialize use case
-	profileUseCase := usecase.NewProfileStatsUseCase(githubClient, *maxVisibleLanguages)
+	profileUseCase := usecase.NewProfileStatsUseCase(githubClient, *maxVisibleLanguages, *excludeLanguages)
 
 	// Initialize presentation layer
 	markdownGen := presentation.NewMarkdownGenerator(*showCredit)
